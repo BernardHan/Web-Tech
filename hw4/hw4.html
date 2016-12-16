@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Homework 4</title>
+    <script type="text/javascript">
+    function loadXML(url){
+        var xmlDOC;
+        if(window.XMLHttpRequest)
+            {
+                //for IE7+, firefox, chrom, opera, safari
+                xmlhttp = new XMLHttpRequest();
+            }
+        else{
+            // for IE5&6
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.open("GET", url, false); // false means synchronous
+        var xmltimer=setTimeout(function(){xmlhttp.abort(); alert("The XML file does not exist."); return;},1500);
+        xmlhttp.send();
+        
+        if(xmlhttp.readyState == 4 || xmlhttp.status == 200){
+            clearTimeout(xmltimer);
+            xmlDOC = xmlhttp.responseXML;
+            if(xmlDOC == null){
+                alert("XML file does not exist.");
+                return null;
+            }
+            if(xmlDOC.documentElement.nodeName == "parsererror"){
+                alert("Malformed XML file.");
+                return null;
+            }
+            return xmlDOC;
+        }
+        else{
+            alert("Unkown Error.")
+        }   
+        return;
+    }
+        
+        
+    function generateHtml(xmlDOC){
+        var html_text = "<html><head><title>Online Newspaper Listings</title></head>" + "<bo" + "dy>";
+        var ELEMENT_NODE = 1; // node type element is 1, means has child
+        html_text += "<table border='2'>";
+        
+        
+        
+        var tags = xmlDOC.getElementsByTagName("Data"); //get all the nodes of table tags
+        
+    
+        // start to build table with starting tags
+        html_text += "<tbody><tr>";
+        var i = 0;
+        for(i = 0; i < tags.length; i++) {
+            html_text += "<th>" + tags.item(i).firstChild.nodeValue + "</th>";
+        }
+        html_text += "</tr>";
+      
+        
+        var rows = xmlDOC.getElementsByTagName("Row");
+        if (rows.length == 0){
+            alert("There is no newspaper in the XML file.");
+            html_text = "";
+            return html_text;
+        }
+        var newspaper;
+        var j = 0;
+        var location = 0;
+        var property;
+        for(i = 0; i < rows.length; i++){
+            newspaper = rows.item(i).childNodes;
+            // start a new row
+            html_text += "<tr>";
+            for(j = 0; j < newspaper.length; j++){
+                property = newspaper.item(j);
+                if(property.nodeType == ELEMENT_NODE){
+                    if(property.nodeName == "Location"){
+                        // when node is location, check how many childs
+                        html_text += "<td><ul>";
+                        for(location = 0; location < property.childNodes.length; location++){
+                            if(property.childNodes.item(location).nodeType == ELEMENT_NODE){
+                                if(property.childNodes.item(location).firstChild != null){
+                                    html_text += "<li>" + property.childNodes.item(location).firstChild.nodeValue + "</li>";
+                                }
+                            }
+                        }
+                        html_text += "</ul></td>";
+                    }
+                    else if(property.nodeName == "HomePage"){
+                        // link url here
+                        if(property.firstChild == null){
+                            html_text += "<td></td>";
+                        }
+                        else{
+                            html_text += "<td><a href='"+property.firstChild.nodeValue+"'>" + property.firstChild.nodeValue + "</a></td>";
+                        }
+                    }
+                    else if(property.nodeName == "Logo"){
+                        // attach the logo image here
+                        if(property.firstChild == null){
+                            html_text += "<td></td>";
+                        }
+                        else{
+                            html_text += "<td><img src='"+property.firstChild.nodeValue+"' width='200' height='150' /></td>";
+                        }
+                    }
+                    else {
+                        // if regular text
+                        if(property.firstChild == null){
+                            html_text += "<td></td>";
+                        }
+                        else{
+                            html_text += "<td>" + property.firstChild.nodeValue + "</td>";
+                        }
+                    }
+                }
+            }
+            html_text += "</tr>";
+        }
+        
+        html_text += "</tbody></table></body></html>";
+           
+        return html_text;
+    }    
+    
+    function buttonClick(URL){
+        var xmlDOC;
+        var html_text;
+        if(URL == ""){
+            alert("XML file cannot be empty.");
+        }
+        else {
+            xmlDOC = loadXML(URL);
+            if (xmlDOC == null){
+                return;
+            }
+            // have handled error: empty, non-exist, wrong header, empty content in tags, location less 2 tags, no row. unhandled: bad form
+            if (window.ActiveXObject) {
+                if (xmlDOC.parseError.errorCode != 0) {
+                    var err = xmlDOC.parseError;
+                    //html_text = generateError(xmlDOC);
+                    newWin = window.open("", "Error", "height=500,width=600");
+                    newWin.document.write(html_text);
+                }
+                else{
+                    html_text = generateHtml(xmlDOC);
+                    newWin = window.open("", "Assignment 4", "height=1000,width=700");
+                    newWin.document.write(html_text);
+                }
+            }
+            else {
+                //if not IE
+                html_text = generateHtml(xmlDOC);
+                if(html_text != ""){
+                    newWin = window.open("", "Assignment 4", "height=1000,width=900");
+                    newWin.document.write(html_text);
+                }
+            }
+            if(html_text != ""){
+                newWin.document.close();
+            }
+        }
+    }
+    
+    
+    </script>
+    </head>
+<body style="text-align:center;">
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <h3>Enter URL for Newspaper List XML File</h3>
+    <input type="text" id="url"> <br>
+    <br>
+    <input type="button" name="submit" value="Submit Query" onclick="buttonClick(document.getElementById('url').value)">
+    <noscript>
+    </body>
+
+</html>
