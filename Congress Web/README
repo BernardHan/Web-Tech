@@ -1,0 +1,9 @@
+#README
+This is a website that uses Sunlight Congress API to provide information about legislators, bills, committees, etc.
+
+Technology used:
+• AJAX and JSON
+• A combination of HTML5, CSS, Bootstrap, jQuery, AngularJS and PHP
+• Amazon Web Services
+• Bootstrap to enhance the user experience
+• Congress search using Sunlight Congress APIs
